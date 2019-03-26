@@ -101,7 +101,7 @@ func (plugin *ImgAuthZPlugin) AuthZReq(req authorization.Request) authorization.
 	}
 
   // Enforce DCT
-  log.Println("Enforcing DCT on ", requestedImage)
+  log.Println("Enforcing DCT on", requestedImage, ". Request:", req.RequestMethod, reqURL.String())
   imageTag := strings.Split(requestedImage, ":")
   image := imageTag[0]
   var tag string
@@ -117,10 +117,10 @@ func (plugin *ImgAuthZPlugin) AuthZReq(req authorization.Request) authorization.
       "lookup", image, tag)
   out, err := cmd.CombinedOutput()
   if err != nil {
-    log.Println("[DENIED] ", requestedImage, ". Reason: ", string(out))
+    log.Println("[DENIED]", requestedImage, ". Reason:", string(out))
     return authorization.Response{Allow: false, Msg: string(out)}
   }
-  log.Println("[ALLOWED] ", requestedImage)
+  log.Println("[ALLOWED]", requestedImage)
   return authorization.Response{Allow: true}
 }
 
