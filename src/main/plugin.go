@@ -4,6 +4,7 @@
 package main
 
 import (
+  "fmt"
 	"encoding/json"
 	dockerapi "github.com/docker/docker/api"
 	dockercontainer "github.com/docker/docker/api/types/container"
@@ -12,18 +13,15 @@ import (
 	"log"
 	"net/url"
 	"strings"
+  "os/exec"
 )
 
 // Image Authorization Plugin struct definition
 type ImgAuthZPlugin struct {
 	// Docker client
 	client                  *dockerclient.Client
-	// Map of authorized registries
-	authorizedRegistries    map[string]bool
-	// Number of authorized registries
-	numAuthorizedRegistries int
-	// List of authorized registries as string
-	authRegistriesAsString  string
+	// Authorized notary
+	authorizedNotary    string
 }
 
 // Returns the list of authorized registries as string
@@ -37,7 +35,7 @@ func authRegistries(m map[string]bool) string {
 
 
 // Create a new image authorization plugin
-func newPlugin(dockerHost string, registries map[string]bool) (*ImgAuthZPlugin, error) {
+func newPlugin(dockerHost string, notary string) (*ImgAuthZPlugin, error) {
 	client, err := dockerclient.NewClient(dockerHost, dockerapi.DefaultVersion, nil, nil)
 
 	if err != nil {
@@ -46,24 +44,15 @@ func newPlugin(dockerHost string, registries map[string]bool) (*ImgAuthZPlugin, 
 
 	return &ImgAuthZPlugin{
 		client: client,
-		authorizedRegistries:    registries,
-		numAuthorizedRegistries: len(registries),
-		authRegistriesAsString:  authRegistries(registries)}, nil
-}
-
-// Returns true if there are any authorized registries configured. 
-// Otherwise, returns false
-func (plugin *ImgAuthZPlugin) hasAuthorizedRegistries() bool {
-	return (plugin.numAuthorizedRegistries > 0)
+		authorizedNotary:    notary}, nil
 }
 
 // Parses the docker client command to determine the requested registry used in the command.
 // If a registry is used in the command (i.e. docker pull or docker run commands), then the registry url and true is returned.
 // Otherwise, returns empty string and false.
-func (plugin *ImgAuthZPlugin) getRequestedRegistry(req authorization.Request, reqURL *url.URL) (string, bool) {
+func (plugin *ImgAuthZPlugin) isImageCommand(req authorization.Request, reqURL *url.URL) (string, bool) {
 
 	image := ""
-	registry := ""
 
 	// docker run
 	if strings.HasSuffix(reqURL.Path, "/containers/create") {
@@ -78,17 +67,12 @@ func (plugin *ImgAuthZPlugin) getRequestedRegistry(req authorization.Request, re
 	}
 
 	if len(image) > 0 {
-		// If no registry is specfied, assume it is the dockerhub!
-		registry = "library"
-		idx := strings.Index(image, "/")
-		if idx != -1 {
-			registry = image[0:idx]
-		}
-		return registry, true
+		return image, true
 	}
 
-	return registry, false
+	return "", false
 }
+
 
 // Authorizes the docker client command.
 // Non registry related commands are allowed by default.
@@ -100,35 +84,47 @@ func (plugin *ImgAuthZPlugin) AuthZReq(req authorization.Request) authorization.
 	reqURL, _ := url.ParseRequestURI(reqURI)
 
 	// Find out the requested registry and whether or not a registry is present in the client command
-	requestedRegistry, isRegistryCommand := plugin.getRequestedRegistry(req, reqURL)
+	requestedImage, isImageCommand := plugin.isImageCommand(req, reqURL)
 
 	// Docker command do not involve registries
-	if isRegistryCommand == false {
+	if isImageCommand == false {
 		// Allowed by default!
-		log.Println("[ALLOWED] Not a registry command:", req.RequestMethod, reqURL.String())
+		log.Println("[ALLOWED] Not a image command:", req.RequestMethod, reqURL.String())
 		return authorization.Response{Allow: true}
 	}
 
 	// There are no authorized registries.
-	if plugin.hasAuthorizedRegistries() == false {
+	if len(plugin.authorizedNotary) == 0 {
 		// So, deny the request by default!
-		log.Println("[DENIED] No authorized registries", req.RequestMethod, reqURL.String())
-		return authorization.Response{Allow: false, Msg: "No authorized registries configured"}
+		log.Println("[DENIED] No authorized notaries configured", req.RequestMethod, reqURL.String())
+		return authorization.Response{Allow: false, Msg: "No authorized notaries configured"}
 	}
 
-	// Verify that registry requested is authorized
-	if plugin.authorizedRegistries[requestedRegistry] == true {
-		// Is an authorized registry: Allow!
-		log.Println("[ALLOWED] Registry:", requestedRegistry, req.RequestMethod, reqURL.String())
-		return authorization.Response{Allow: true}
-	}
-
-	// Oops.. The requested registry is not authorized. Deny the request!
-	log.Println("[DENIED] Registry:", requestedRegistry, req.RequestMethod, reqURL.String())
-	return authorization.Response{Allow: false, Msg: "You can only use docker images from the following authorized registries: " + plugin.authRegistriesAsString}
+  // Enforce DCT
+  log.Println("Enforcing DCT on ", requestedImage)
+  imageTag := strings.Split(requestedImage, ":")
+  image := imageTag[0]
+  var tag string
+  if len(imageTag) > 1 {
+      tag = imageTag[1]
+  } else {
+      tag = "latest"
+  }
+  notaryURL, _ := url.ParseRequestURI(plugin.authorizedNotary)
+  cmd := exec.Command("notary",
+      "-s", plugin.authorizedNotary, "-d", "/root/.docker/trust", "--tlscacert",
+      fmt.Sprintf("/root/.docker/tls/%s/root-ca.crt", notaryURL.Host),
+      "lookup", image, tag)
+  out, err := cmd.CombinedOutput()
+  if err != nil {
+    log.Println("[DENIED] ", requestedImage, ". Reason: ", string(out))
+    return authorization.Response{Allow: false, Msg: string(out)}
+  }
+  log.Println("[ALLOWED] ", requestedImage)
+  return authorization.Response{Allow: true}
 }
 
-// Authorizes the docker client response.
+// AuthZRes authorizes the docker client response.
 // All responses are allowed by default.
 func (plugin *ImgAuthZPlugin) AuthZRes(req authorization.Request) authorization.Response {
 	// Allowed by default.
