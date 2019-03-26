@@ -117,10 +117,10 @@ func (plugin *ImgAuthZPlugin) AuthZReq(req authorization.Request) authorization.
       "lookup", image, tag)
   out, err := cmd.CombinedOutput()
   if err != nil {
-    log.Println("[DENIED]", requestedImage, ". Reason:", string(out))
+    log.Println("[DENIED]", image + ":" + tag, ". Reason:", string(out))
     return authorization.Response{Allow: false, Msg: string(out)}
   }
-  log.Println("[ALLOWED]", requestedImage)
+  log.Println("[ALLOWED]", image + ":" + tag)
   return authorization.Response{Allow: true}
 }
 
