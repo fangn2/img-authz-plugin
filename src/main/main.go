@@ -27,7 +27,7 @@ func main() {
 
 	log.Println("Plugin Version:", Version, "Build: ", Build)
 	flag.Parse()
-	log.Println("Authorized notary: ", authorizedNotary)
+	log.Println("Authorized notary: ", *authorizedNotary)
 
 	// Create image authorization plugin
 	plugin, err := newPlugin(*flDockerHost, *authorizedNotary)
