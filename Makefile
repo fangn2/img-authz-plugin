@@ -9,8 +9,8 @@ SERVICECONFIGFILE=${SERVICE}.service
 SYSTEMINSTALLDIR=/usr/lib/systemd/system
 SOURCEDIR=src/main/
 SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
-REGISTRIES := ""
-AUTH_REGISTRIES=$(shell echo $(REGISTRIES)  | sed 's/^\s*/--registry /g' | sed 's/\s*,\s*/ --registry /g' | sed 's/^\s*--registry\s*$$//g' )
+NOTARY := ""
+AUTH_NOTARIES=$(shell echo $(NOTARY)  | sed 's/^\s*/--notary /g' | sed 's/\s*,\s*/ --notary /g' | sed 's/^\s*--notary\s*$$//g' )
 
 VERSION := 1.0.0
 BUILD := `date +%FT%T%z`
@@ -36,7 +36,7 @@ config: $(SERVICESOCKETFILE) $(SERVICECONFIGFILE)
 
 # Generate the socket file
 .PHONY: $(SERVICESOCKETFILE)
-$(SERVICESOCKETFILE): 
+$(SERVICESOCKETFILE):
 	@echo -n "" > ${SERVICESOCKETFILE}
 	@echo "[Unit]" >> ${SERVICESOCKETFILE}
 	@echo "Description=${DESCRIPTION} Socket" >> ${SERVICESOCKETFILE}
@@ -58,7 +58,7 @@ $(SERVICECONFIGFILE):
 	@echo "Requires=${SERVICESOCKETFILE} docker.service" >> ${SERVICECONFIGFILE}
 	@echo  >> ${SERVICECONFIGFILE}
 	@echo "[Service]" >> ${SERVICECONFIGFILE}
-	@echo "ExecStart=${SERVICEINSTALLDIR}/${SERVICE} ${AUTH_REGISTRIES}" >> ${SERVICECONFIGFILE}
+	@echo "ExecStart=${SERVICEINSTALLDIR}/${SERVICE} ${AUTH_NOTARIES}" >> ${SERVICECONFIGFILE}
 	@echo  >> ${SERVICECONFIGFILE}
 	@echo "[Install]" >> ${SERVICECONFIGFILE}
 	@echo "WantedBy=multi-user.target" >> ${SERVICECONFIGFILE}
