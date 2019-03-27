@@ -1,8 +1,10 @@
-# Docker Image Authorization Plugin
+# Docker Image Authorization Plugin with DCT
 
 The Docker Engine image authorization plugin allows docker images only from a
 predefined authorized Notary to be used by the docker engine. This implements
-DCT on the side of DE. For additional information, please refer to [docker
+DCT on the side of DE. The implementation uses `docker pull` with enabled DCT to
+check the presence of the image metadata in the Notary and its validity. For
+additional information, please refer to [docker
 documentation](https://docs.docker.com/engine/extend/) on plugins.
 
 
@@ -57,7 +59,12 @@ docker run --rm -v `pwd`:`pwd` -w `pwd` -e GOPATH=`pwd` plugin-build-tools:lates
 # Generate the plugin service units configuration
 # IMPORTANT: Please note that the make config command supports generation of systemd units for CentOS/RHEL only
 docker run --rm -v `pwd`:`pwd` -w `pwd` -e GOPATH=`pwd` plugin-build-tools:latest \
-  make config NOTARY=<https://my-notary>
+  make config NOTARY=<https://my-notary[:port]>
+
+# Add notary root CA certificate.
+# The certificate should be placed to ~/.docker/tls of the user on behalf
+# of whom the service will be running.
+~/.docker/tls/<my-notary[:port]>/root-ca.crt
 
 # Install the plugin service
 docker run --rm -v `pwd`:`pwd` -w `pwd` -e GOPATH=`pwd` -v /usr/libexec:/usr/libexec \
