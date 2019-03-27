@@ -1,8 +1,9 @@
 # Docker Image Authorization Plugin
 
-[![Build Status](https://travis-ci.org/cpdevws/img-authz-plugin.svg?branch=master)](https://travis-ci.org/cpdevws/img-authz-plugin)
-
-The image authorization plugin allows docker images only from a list of authorized registries to be used by the docker engine. For additional information, please refer to [docker documentation](https://docs.docker.com/engine/extend/) on plugins.
+The Docker Engine image authorization plugin allows docker images only from a
+predefined authorized Notary to be used by the docker engine. This implements
+DCT on the side of DE. For additional information, please refer to [docker
+documentation](https://docs.docker.com/engine/extend/) on plugins.
 
 
 ### Running tests for the image authorization plugin
@@ -20,7 +21,7 @@ docker run --privileged -d --name plugin-tests-1.11.2 plugin-tests-1.11.2
 # Run the plugin tests
 docker exec plugin-tests-1.11.2 python tests.py
 
-# Remove the plugin tests container 
+# Remove the plugin tests container
 docker rm -f plugin-tests-1.11.2
 
 # Remove the plugin tests image
@@ -38,7 +39,7 @@ docker run --privileged -d --name plugin-tests-1.12.6 plugin-tests-1.12.6
 # Run the plugin tests
 docker exec plugin-tests-1.12.6 python tests.py
 
-# Remove the plugin tests container 
+# Remove the plugin tests container
 docker rm -f plugin-tests-1.12.6
 
 # Remove the plugin tests image
@@ -55,15 +56,14 @@ docker run --rm -v `pwd`:`pwd` -w `pwd` -e GOPATH=`pwd` plugin-build-tools:lates
 
 # Generate the plugin service units configuration
 # IMPORTANT: Please note that the make config command supports generation of systemd units for CentOS/RHEL only
-# IMPORTANT: If you do not want to authorize any registry, please leave the REGISTRIES variable below empty
 docker run --rm -v `pwd`:`pwd` -w `pwd` -e GOPATH=`pwd` plugin-build-tools:latest \
-  make config REGISTRIES=<authorized_registry1>,<authorized_registry2>,...
+  make config NOTARY=<https://my-notary>
 
 # Install the plugin service
 docker run --rm -v `pwd`:`pwd` -w `pwd` -e GOPATH=`pwd` -v /usr/libexec:/usr/libexec \
   -v /usr/lib/systemd/system:/usr/lib/systemd/system plugin-build-tools:latest \
   make install
-  
+
 # Start the plugin service
 systemctl daemon-reload
 systemctl enable img-authz-plugin
@@ -71,7 +71,7 @@ systemctl start img-authz-plugin
 ```
 
 ### Enable the authorization plugin on docker engine
-##### Step-1: Add authorization plugin to the docker engine configuration 
+##### Step-1: Add authorization plugin to the docker engine configuration
 Please add the following cmdline flag to your docker engine (e.g. ExecStart line /usr/lib/systemd/system/docker.service)
 ```
 --authorization-plugin img-authz-plugin
@@ -107,4 +107,6 @@ journalctl -xe -u img-authz-plugin -f
 ```
 
 ### Contact
-For further queries on the plugin, please reach out to me at cpdevws@gmail.com or post an issue in the repo. Also, pull requests welcome for extending the plugin for other linux distributions and useful features!
+For further queries on the plugin, please reach out to me at cpdevws@gmail.com
+or post an issue in the repo. Also, pull requests welcome for extending the
+plugin for other linux distributions and useful features!
