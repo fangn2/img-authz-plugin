@@ -1,9 +1,7 @@
 # Docker Image Authorization Plugin with DCT
 
-The Docker Engine image authorization plugin allows docker images only from a
-predefined authorized Notary to be used by the docker engine. This implements
-DCT on the side of DE. The implementation uses `docker pull` with enabled DCT to
-check the presence of the image metadata in the Notary and its validity. For
+The image authorization plugin allows docker images only from a list of
+authorized registries and notaries to be used by the docker engine. For
 additional information, please refer to [docker
 documentation](https://docs.docker.com/engine/extend/) on plugins.
 
@@ -59,12 +57,7 @@ docker run --rm -v `pwd`:`pwd` -w `pwd` -e GOPATH=`pwd` plugin-build-tools:lates
 # Generate the plugin service units configuration
 # IMPORTANT: Please note that the make config command supports generation of systemd units for CentOS/RHEL only
 docker run --rm -v `pwd`:`pwd` -w `pwd` -e GOPATH=`pwd` plugin-build-tools:latest \
-  make config NOTARY=<https://my-notary[:port]>
-
-# Add notary root CA certificate.
-# The certificate should be placed to ~/.docker/tls of the user on behalf
-# of whom the service will be running.
-~/.docker/tls/<my-notary[:port]>/root-ca.crt
+  make config REGISTRIES=<authorized_registry1>,<authorized_registry2>,... NOTARY=<notary>
 
 # Install the plugin service
 docker run --rm -v `pwd`:`pwd` -w `pwd` -e GOPATH=`pwd` -v /usr/libexec:/usr/libexec \
@@ -113,7 +106,3 @@ docker run --rm -v `pwd`:`pwd` -w `pwd` -e GOPATH=`pwd` plugin-build-tools:lates
 journalctl -xe -u img-authz-plugin -f
 ```
 
-### Contact
-For further queries on the plugin, please reach out to me at cpdevws@gmail.com
-or post an issue in the repo. Also, pull requests welcome for extending the
-plugin for other linux distributions and useful features!

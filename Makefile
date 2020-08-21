@@ -9,6 +9,8 @@ SERVICECONFIGFILE=${SERVICE}.service
 SYSTEMINSTALLDIR=/usr/lib/systemd/system
 SOURCEDIR=src/main/
 SOURCES := $(shell find $(SOURCEDIR) -name '*.go')
+REGISTRIES := ""
+AUTH_REGISTRIES=$(shell echo $(REGISTRIES)  | sed 's/^\s*/--registry /g' | sed 's/\s*,\s*/ --registry /g' | sed 's/^\s*--registry\s*$$//g' )
 NOTARY := ""
 AUTH_NOTARIES=$(shell echo $(NOTARY)  | sed 's/^\s*/--notary /g' | sed 's/\s*,\s*/ --notary /g' | sed 's/^\s*--notary\s*$$//g' )
 
@@ -58,7 +60,7 @@ $(SERVICECONFIGFILE):
 	@echo "Requires=${SERVICESOCKETFILE} docker.service" >> ${SERVICECONFIGFILE}
 	@echo  >> ${SERVICECONFIGFILE}
 	@echo "[Service]" >> ${SERVICECONFIGFILE}
-	@echo "ExecStart=${SERVICEINSTALLDIR}/${SERVICE} ${AUTH_NOTARIES}" >> ${SERVICECONFIGFILE}
+	@echo "ExecStart=${SERVICEINSTALLDIR}/${SERVICE} ${AUTH_REGISTRIES} ${AUTH_NOTARIES}" >> ${SERVICECONFIGFILE}
 	@echo  >> ${SERVICECONFIGFILE}
 	@echo "[Install]" >> ${SERVICECONFIGFILE}
 	@echo "WantedBy=multi-user.target" >> ${SERVICECONFIGFILE}
