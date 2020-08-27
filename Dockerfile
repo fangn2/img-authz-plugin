@@ -2,15 +2,17 @@ FROM golang
 
 ARG registries
 
-WORKDIR /opt
-
-COPY . .
-
 # install Notary and a pre-requisite
 ENV GO111MODULE=on
 
-RUN go get github.com/theupdateframework/notary && \
+RUN git clone https://github.com/theupdateframework/notary.git && \
+    cd notary && \
+    go get github.com/theupdateframework/notary && \
     go install -tags pkcs11 github.com/theupdateframework/notary/cmd/notary
+
+WORKDIR /opt
+
+COPY . .
 
 RUN make --makefile=Makefile.src && \
     make --makefile=Makefile.src install && \
