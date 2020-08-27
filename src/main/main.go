@@ -5,7 +5,9 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
+	"os"
 	"os/user"
 	"strconv"
 
@@ -20,7 +22,6 @@ const (
 var (
 	flDockerHost         = flag.String("host", defaultDockerHost, "Specifies the host where docker daemon is running")
 	authorizedRegistries stringslice
-	authorizedNotary     = flag.String("notary", "", "Specifies the authorized image notary")
 	Version              string
 	Build                string
 )
@@ -29,22 +30,44 @@ func main() {
 
 	log.Println("Plugin Version:", Version, "Build: ", Build)
 
-	// Fetch the registry cmd line options
-	flag.Var(&authorizedRegistries, "registry", "Specifies the authorized image registries")
-	flag.Parse()
+	// Fetch the registry from env
+	authorizedRegistry := os.Getenv("REGISTRY")
+
+	// Fetch the notary from env
+	authorizedNotary := os.Getenv("NOTARY")
+
+	// Fetch the notary RootCA from env
+	notaryRootCA := os.Getenv("NOTARY_ROOT_CA")
+
+	var notaryRootCAFolder = fmt.Sprintf("/root/.docker/tls/%s", authorizedNotary)
+	var notaryRootCAFile = fmt.Sprintf("%s/root-ca.crt", notaryRootCAFolder)
+	os.MkdirAll(notaryRootCAFolder, os.ModePerm)
+
+	f, err := os.Create(notaryRootCAFile)
+	errt := f.Truncate(0)
+	if err != nil || errt != nil {
+		log.Fatal(err, errt)
+	}
+
+	defer f.Close()
+	_, err2 := f.WriteString(notaryRootCA)
+	if err2 != nil {
+		log.Fatal(err2)
+	}
 
 	// Convert authorized registries into a map for efficient lookup
+	// NB! Although, only single registry is expected at the moment,
+	//     wee keep registries map for the later extensibility.
 	registries := make(map[string]bool)
-	for _, registry := range authorizedRegistries {
-		log.Println("Authorized registry:", registry)
-		registries[registry] = true
-	}
-	log.Println("No. of authorized registries: ", len(registries))
+	log.Println("Authorized registry:", authorizedRegistry)
+	registries[authorizedRegistry] = true
 
-	log.Println("Authorized notary: ", *authorizedNotary)
+	log.Println("Authorized notary: ", authorizedNotary)
+
+	log.Println("Notary Root CA: ", notaryRootCAFile)
 
 	// Create image authorization plugin
-	plugin, err := newPlugin(*flDockerHost, registries, *authorizedNotary)
+	plugin, err := newPlugin(*flDockerHost, registries, authorizedNotary)
 	if err != nil {
 		log.Fatal(err)
 	}
