@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/user"
 	"strconv"
+	"strings"
 
 	"github.com/docker/go-plugins-helpers/authorization"
 )
@@ -35,6 +36,9 @@ func main() {
 
 	// Fetch the notary from env
 	authorizedNotary := os.Getenv("NOTARY")
+	if !strings.HasPrefix(authorizedNotary, "https://") {
+		authorizedNotary = "https://" + authorizedNotary
+	}
 
 	// Fetch the notary RootCA from env
 	notaryRootCA := os.Getenv("NOTARY_ROOT_CA")
