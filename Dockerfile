@@ -7,6 +7,8 @@ WORKDIR /opt
 COPY . .
 
 # install Notary and a pre-requisite
+ENV GO111MODULE=on
+
 RUN go get github.com/theupdateframework/notary && \
     go install -tags pkcs11 github.com/theupdateframework/notary/cmd/notary
 
