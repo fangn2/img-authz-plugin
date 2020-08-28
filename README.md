@@ -1,9 +1,13 @@
-# Docker Image Authorization Plugin
+# SixSq's Docker Image Authorization Plugin
 
-The image authorization plugin allows docker images only from a list of
-authorized registries and notaries to be used by the docker engine. For
-additional information, please refer to [docker
-documentation](https://docs.docker.com/engine/extend/) on plugins.
+This image authorization plugin is a fork and adaptation from the original upstream project [crosslibs/img-authz-plugin](https://github.com/crosslibs/img-authz-plugin). 
+
+The plugin makes sure that all Docker Registry-related requests are limited to a user-specified Docker Registry endpoint and, and trusted Docker images only. 
+
+Docker and Notary tools are used to enforce and verify the Docker Registry and Image verification workflows.
+
+For additional information, please refer to [docker
+documentation](https://docs.docker.com/engine/extend/) on plugins, or the original plugin at [https://github.com/crosslibs/img-authz-plugin](https://github.com/crosslibs/img-authz-plugin).
 
 
 ## Build and package the plugin
