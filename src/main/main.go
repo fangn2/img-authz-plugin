@@ -43,7 +43,9 @@ func main() {
 	// Fetch the notary RootCA from env
 	notaryRootCA := os.Getenv("NOTARY_ROOT_CA")
 
-	var notaryRootCAFolder = fmt.Sprintf("/root/.docker/tls/%s", authorizedNotary)
+  notaryURL, _ := url.ParseRequestURI(authorizedNotary)
+
+	var notaryRootCAFolder = fmt.Sprintf("/root/.docker/tls/%s", notaryURL.Host)
 	var notaryRootCAFile = fmt.Sprintf("%s/root-ca.crt", notaryRootCAFolder)
 	os.MkdirAll(notaryRootCAFolder, os.ModePerm)
 
