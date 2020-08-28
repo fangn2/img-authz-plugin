@@ -186,7 +186,7 @@ func (plugin *ImgAuthZPlugin) AuthZReq(req authorization.Request) authorization.
 		tag = "latest"
 	}
 	notaryURL, _ := url.ParseRequestURI(plugin.authorizedNotary)
-	cmd := exec.Command("notary",
+	cmd := exec.Command("/go/bin/notary",
 		"-s", plugin.authorizedNotary, "-d", "/root/.docker/trust", "--tlscacert",
 		fmt.Sprintf("/root/.docker/tls/%s/root-ca.crt", notaryURL.Host),
 		"lookup", image, tag)
