@@ -7,7 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
-  "net/url"
+  	"net/url"
 	"os"
 	"os/user"
 	"strconv"
@@ -33,7 +33,13 @@ func main() {
 	log.Println("Plugin Version:", Version, "Build: ", Build)
 
 	// Fetch the registry from env
-	authorizedRegistry := os.Getenv("REGISTRY")
+	var defaultRegistry = "docker.io"
+	authorizedRegistry, registryIsSet := os.LookupEnv("REGISTRY")
+
+	if ! registryIsSet {
+		authorizedRegistry = defaultRegistry
+		log.Println("REGISTRY was not set. Defaulting to:", defaultRegistry)
+	}
 
 	// Fetch the notary from env
 	authorizedNotary := os.Getenv("NOTARY")
@@ -44,7 +50,7 @@ func main() {
 	// Fetch the notary RootCA from env
 	notaryRootCA := os.Getenv("NOTARY_ROOT_CA")
 
-  notaryURL, _ := url.ParseRequestURI(authorizedNotary)
+  	notaryURL, _ := url.ParseRequestURI(authorizedNotary)
 
 	var notaryRootCAFolder = fmt.Sprintf("/root/.docker/tls/%s", notaryURL.Host)
 	var notaryRootCAFile = fmt.Sprintf("%s/root-ca.crt", notaryRootCAFolder)

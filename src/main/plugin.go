@@ -110,7 +110,7 @@ func (plugin *ImgAuthZPlugin) getRequestedRegistry(req authorization.Request, re
 
 	if len(image) > 0 {
 		// If no registry is specfied, assume it is the dockerhub!
-		registry = "library"
+		registry = "docker.io"
 		idx := strings.Index(image, "/")
 		if idx != -1 {
 			registry = image[0:idx]

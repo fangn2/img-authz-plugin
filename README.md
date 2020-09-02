@@ -12,17 +12,31 @@ documentation](https://docs.docker.com/engine/extend/) on plugins, or the origin
 
 ## Build and package the plugin
 
-Build the plugin filesystem:
+ 1. Build the plugin filesystem:
 
-`make build`
+    ```bash
+    make build
+    ```
+    
+    This will build a base Docker image with the compiled plugin code and necessary dependencies. This step will also create a staging container from this Docker image and extract its filesystem to the plugin's build directory, `rootfs` (also configured in this step), as mandated by the [Docker Plugin documentation](https://docs.docker.com/engine/extend/#developing-a-plugin)
 
-Create the actual Docker plugin:
+ 2. Create the actual Docker plugin:
 
-`make create`
+    ```bash
+    make create
+    ```
+    
+    This will **cleanup any previous installation of the plugin**, if the names match. So please **make sure** your Docker Daemon is not running with this plugin's name enabled.
+    
+    At the end of this step, you'll have a new Docker plugin, disabled.
 
-Publish the plugin to the registry:
+ 3. Publish the plugin to the registry:
 
-`make push`
+    ```bash
+    make push
+    ```
+    
+    This step will upload the said Docker Plugin into the specified Docker registry. Please **make sure** you have given Docker your registry credentials before executing this step (`docker login ...`).
 
 ---
 
