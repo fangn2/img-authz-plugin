@@ -57,8 +57,8 @@ func main() {
 	// Fetch the notary RootCA from env
 	notaryRootCA, notaryCAIsSet := os.LookupEnv("NOTARY_ROOT_CA")
 	var notaryRootCAFile string
-	if ! notaryIsSet {
-		var notaryRootCAFile = ""
+	if ! notaryCAIsSet {
+		notaryRootCAFile := ""
 
 		log.Println("Notary Server Root CA was not passed. Assuming the Notary server has been signed by a recognized public CA!")
 	} else{
