@@ -45,7 +45,7 @@ func main() {
 	var defaultNotary = "https://notary.docker.io"
 	authorizedNotary, _ := os.LookupEnv("NOTARY")
 
-	if len(authorizedNotary) {
+	if len(authorizedNotary) == 0 {
 		authorizedNotary = defaultNotary
 		log.Println("Notary Server was not set. Defaulting to:", defaultNotary)
 	}
