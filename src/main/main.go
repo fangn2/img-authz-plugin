@@ -58,7 +58,7 @@ func main() {
 	notaryRootCA, notaryCAIsSet := os.LookupEnv("NOTARY_ROOT_CA")
 	var notaryRootCAFile string
 	if ! notaryCAIsSet {
-		notaryRootCAFile := ""
+		notaryRootCAFile = ""
 
 		log.Println("Notary Server Root CA was not passed. Assuming the Notary server has been signed by a recognized public CA!")
 	} else{
