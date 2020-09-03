@@ -1,7 +1,5 @@
 FROM golang
 
-ARG registries
-
 WORKDIR /opt
 
 COPY . .
@@ -20,7 +18,6 @@ RUN git clone https://github.com/theupdateframework/notary.git && \
 
 # empty unless the image is specifically built with it
 # the docker plugin install command will set this later if needed
-ENV REGISTRIES=${registries} \
-    PATH=${PATH}:/go/bin
+ENV PATH=${PATH}:/go/bin
 
 ENTRYPOINT /usr/libexec/img-authz-plugin

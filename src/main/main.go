@@ -36,7 +36,7 @@ func main() {
 	var defaultRegistry = "docker.io"
 	authorizedRegistry, registryIsSet := os.LookupEnv("REGISTRY")
 
-	if ! registryIsSet {
+	if !registryIsSet {
 		authorizedRegistry = defaultRegistry
 		log.Println("REGISTRY was not set. Defaulting to:", defaultRegistry)
 	}
@@ -45,7 +45,7 @@ func main() {
 	var defaultNotary = "https://notary.docker.io"
 	authorizedNotary, notaryIsSet := os.LookupEnv("NOTARY")
 
-	if ! notaryIsSet {
+	if !notaryIsSet {
 		authorizedNotary = defaultNotary
 		log.Println("Notary Server was not set. Defaulting to:", defaultNotary)
 	}
@@ -57,7 +57,7 @@ func main() {
 	// Fetch the notary RootCA from env
 	notaryRootCA, notaryCAIsSet := os.LookupEnv("NOTARY_ROOT_CA")
 	var notaryRootCAFile string
-	if ! notaryCAIsSet {
+	if !notaryCAIsSet {
 		notaryRootCAFile = ""
 
 		log.Println("Notary Server Root CA was not passed. Assuming the Notary server has been signed by a recognized public CA!")
@@ -82,6 +82,8 @@ func main() {
 
 		log.Println("Notary Root CA: ", notaryRootCAFile)
 	}
+
+	log.Println(registryIsSet, notaryIsSet, notaryCAIsSet)
 
 	// Convert authorized registries into a map for efficient lookup
 	// NB! Although, only single registry is expected at the moment,
