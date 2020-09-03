@@ -5,7 +5,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/url"
 	"os/exec"
@@ -208,6 +207,7 @@ func (plugin *ImgAuthZPlugin) AuthZReq(req authorization.Request) authorization.
 	image := strings.TrimRight(plugin.authRegistriesAsString, "/") +
 				"/" + imageTag[0]
 
+	var cmd *interface{}
 	if len(plugin.authorizedNotaryRootCAFile) > 0 {
 		cmd := exec.Command("/go/bin/notary",
 			"-s", plugin.authorizedNotary, "-d", "/root/.docker/trust", "--tlscacert", plugin.authorizedNotaryRootCAFile,
