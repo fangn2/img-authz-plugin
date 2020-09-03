@@ -207,13 +207,13 @@ func (plugin *ImgAuthZPlugin) AuthZReq(req authorization.Request) authorization.
 	image := strings.TrimRight(plugin.authRegistriesAsString, "/") +
 				"/" + imageTag[0]
 
-	var cmd *interface{}
+	var cmd *exec.Cmd
 	if len(plugin.authorizedNotaryRootCAFile) > 0 {
-		cmd := exec.Command("/go/bin/notary",
+		cmd = exec.Command("/go/bin/notary",
 			"-s", plugin.authorizedNotary, "-d", "/root/.docker/trust", "--tlscacert", plugin.authorizedNotaryRootCAFile,
 			"lookup", image, tag)
 	} else {
-		cmd := exec.Command("/go/bin/notary",
+		cmd = exec.Command("/go/bin/notary",
 			"-s", plugin.authorizedNotary, "-d", "/root/.docker/trust",
 			"lookup", image, tag)
 	}

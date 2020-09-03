@@ -56,6 +56,7 @@ func main() {
 
 	// Fetch the notary RootCA from env
 	notaryRootCA, notaryCAIsSet := os.LookupEnv("NOTARY_ROOT_CA")
+	var notaryRootCAFile string
 	if ! notaryIsSet {
 		var notaryRootCAFile = ""
 
