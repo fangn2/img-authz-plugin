@@ -30,5 +30,8 @@
       ],
       "value": ""
     }
-  ]
+  ],
+  "network": {
+    "type": "host"
+  }
 }
