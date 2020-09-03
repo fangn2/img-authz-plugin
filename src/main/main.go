@@ -42,30 +42,44 @@ func main() {
 	}
 
 	// Fetch the notary from env
-	authorizedNotary := os.Getenv("NOTARY")
+	var defaultNotary = "https://notary.docker.io"
+	authorizedNotary, notaryIsSet := os.LookupEnv("NOTARY")
+
+	if ! notaryIsSet {
+		authorizedNotary = defaultNotary
+		log.Println("Notary Server was not set. Defaulting to:", defaultNotary)
+	}
+
 	if !strings.HasPrefix(authorizedNotary, "https://") {
 		authorizedNotary = "https://" + authorizedNotary
 	}
 
 	// Fetch the notary RootCA from env
-	notaryRootCA := os.Getenv("NOTARY_ROOT_CA")
+	notaryRootCA, notaryCAIsSet := os.LookupEnv("NOTARY_ROOT_CA")
+	if ! notaryIsSet {
+		var notaryRootCAFile = ""
 
-  	notaryURL, _ := url.ParseRequestURI(authorizedNotary)
+		log.Println("Notary Server Root CA was not passed. Assuming the Notary server has been signed by a recognized public CA!")
+	} else{
+		notaryURL, _ := url.ParseRequestURI(authorizedNotary)
 
-	var notaryRootCAFolder = fmt.Sprintf("/root/.docker/tls/%s", notaryURL.Host)
-	var notaryRootCAFile = fmt.Sprintf("%s/root-ca.crt", notaryRootCAFolder)
-	os.MkdirAll(notaryRootCAFolder, os.ModePerm)
+		var notaryRootCAFolder = fmt.Sprintf("/root/.docker/tls/%s", notaryURL.Host)
+		var notaryRootCAFile = fmt.Sprintf("%s/root-ca.crt", notaryRootCAFolder)
+		os.MkdirAll(notaryRootCAFolder, os.ModePerm)
 
-	f, err := os.Create(notaryRootCAFile)
-	errt := f.Truncate(0)
-	if err != nil || errt != nil {
-		log.Fatal(err, errt)
-	}
+		f, err := os.Create(notaryRootCAFile)
+		errt := f.Truncate(0)
+		if err != nil || errt != nil {
+			log.Fatal(err, errt)
+		}
 
-	defer f.Close()
-	_, err2 := f.WriteString(notaryRootCA)
-	if err2 != nil {
-		log.Fatal(err2)
+		defer f.Close()
+		_, err2 := f.WriteString(notaryRootCA)
+		if err2 != nil {
+			log.Fatal(err2)
+		}
+
+		log.Println("Notary Root CA: ", notaryRootCAFile)
 	}
 
 	// Convert authorized registries into a map for efficient lookup
@@ -77,10 +91,8 @@ func main() {
 
 	log.Println("Authorized notary: ", authorizedNotary)
 
-	log.Println("Notary Root CA: ", notaryRootCAFile)
-
 	// Create image authorization plugin
-	plugin, err := newPlugin(*flDockerHost, registries, authorizedNotary)
+	plugin, err := newPlugin(*flDockerHost, registries, authorizedNotary, notaryRootCAFile)
 	if err != nil {
 		log.Fatal(err)
 	}

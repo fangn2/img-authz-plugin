@@ -29,6 +29,8 @@ type ImgAuthZPlugin struct {
 	authRegistriesAsString string
 	// Authorized notary
 	authorizedNotary string
+	// File holding the Root CA for the notary server
+	authorizedNotaryRootCAFile string
 }
 
 // Returns the list of authorized registries as string
@@ -41,7 +43,7 @@ func authRegistries(m map[string]bool) string {
 }
 
 // Create a new image authorization plugin
-func newPlugin(dockerHost string, registries map[string]bool, notary string) (*ImgAuthZPlugin, error) {
+func newPlugin(dockerHost string, registries map[string]bool, notary string, notaryRootCAFile string) (*ImgAuthZPlugin, error) {
 	client, err := dockerclient.NewClient(dockerHost, dockerapi.DefaultVersion, nil, nil)
 
 	if err != nil {
@@ -52,6 +54,7 @@ func newPlugin(dockerHost string, registries map[string]bool, notary string) (*I
 		client:                  client,
 		authorizedRegistries:    registries,
 		authorizedNotary:        notary,
+		authorizedNotaryRootCAFile:	notaryRootCAFile,
 		numAuthorizedRegistries: len(registries),
 		authRegistriesAsString:  authRegistries(registries)}, nil
 }
@@ -177,19 +180,44 @@ func (plugin *ImgAuthZPlugin) AuthZReq(req authorization.Request) authorization.
 
 	// Enforce DCT
 	log.Println("Enforcing DCT on", requestedImage, ". Request:", req.RequestMethod, reqURL.String())
-	imageTag := strings.Split(requestedImage, ":")
-	image := imageTag[0]
+
+	// we need to make sure the requested image is the the FQDN format,
+	// and that for official images, the repo "library" is included
+	trimmedImage := strings.TrimPrefix(strings.TrimPrefix(
+		requestedImage,
+		plugin.authRegistriesAsString), "/")
+
+	// after trimming the registry, we need to consider two types of image references:
+	//    - repo/image:tag, such as nuvla/api:latest, or
+	//	  - image:tag, used for official images, who omit the "library" repo, like alpine:latest
+	if len(strings.Split(trimmedImage, "/")) == 1 {
+		// then the format is missing the repo "library"
+		trimmedImage := "library" + trimmedImage
+	}
+
+	imageTag := strings.Split(trimmedImage, ":")
+
 	var tag string
 	if len(imageTag) > 1 {
 		tag = imageTag[1]
 	} else {
 		tag = "latest"
 	}
-	notaryURL, _ := url.ParseRequestURI(plugin.authorizedNotary)
-	cmd := exec.Command("/go/bin/notary",
-		"-s", plugin.authorizedNotary, "-d", "/root/.docker/trust", "--tlscacert",
-		fmt.Sprintf("/root/.docker/tls/%s/root-ca.crt", notaryURL.Host),
-		"lookup", image, tag)
+
+	// reconstruct the GUN based on the string manipulations from above
+	image := strings.TrimRight(plugin.authRegistriesAsString, "/") +
+				"/" + imageTag[0]
+
+	if len(plugin.authorizedNotaryRootCAFile) > 0 {
+		cmd := exec.Command("/go/bin/notary",
+			"-s", plugin.authorizedNotary, "-d", "/root/.docker/trust", "--tlscacert", plugin.authorizedNotaryRootCAFile,
+			"lookup", image, tag)
+	} else {
+		cmd := exec.Command("/go/bin/notary",
+			"-s", plugin.authorizedNotary, "-d", "/root/.docker/trust",
+			"lookup", image, tag)
+	}
+
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Println("[DENIED]", image+":"+tag, ". Reason:", string(out))
