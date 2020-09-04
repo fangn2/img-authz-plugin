@@ -191,7 +191,7 @@ func (plugin *ImgAuthZPlugin) AuthZReq(req authorization.Request) authorization.
 	//	  - image:tag, used for official images, who omit the "library" repo, like alpine:latest
 	if len(strings.Split(trimmedImage, "/")) == 1 {
 		// then the format is missing the repo "library"
-		trimmedImage = "library" + trimmedImage
+		trimmedImage = "library/" + trimmedImage
 	}
 
 	imageTag := strings.Split(trimmedImage, ":")
