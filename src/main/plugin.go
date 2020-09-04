@@ -205,7 +205,10 @@ func (plugin *ImgAuthZPlugin) AuthZReq(req authorization.Request) authorization.
 
 	// reconstruct the GUN based on the string manipulations from above
 	image := strings.TrimRight(plugin.authRegistriesAsString, "/") +
-				"/" + imageTag[0]
+		"/" + imageTag[0]
+
+	log.Println("Checking Notary server", plugin.authorizedNotary,
+		"for trust on image:", image, tag)
 
 	var cmd *exec.Cmd
 	if len(plugin.authorizedNotaryRootCAFile) > 0 {
