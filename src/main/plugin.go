@@ -67,7 +67,7 @@ func (plugin *ImgAuthZPlugin) hasAuthorizedRegistries() bool {
 // Parses the docker client command to determine the requested registry used in the command.
 // If a registry is used in the command (i.e. docker pull or docker run commands), then the registry url and true is returned.
 // Otherwise, returns empty string and false.
-func (plugin *ImgAuthZPlugin) getRequestedRegistry(req authorization.Request, reqURL *url.URL) (string, bool) {
+func (plugin *ImgAuthZPlugin) getRequestedRegistry(req authorization.Request, reqURL *url.URL) (string, string, bool) {
 
 	image := ""
 	registry := ""
@@ -128,18 +128,6 @@ func (plugin *ImgAuthZPlugin) getRequestedRegistry(req authorization.Request, re
 				}
 			}
 		}
-
-		// So let's remove the set REGISTRY by default to normalize fromImage
-		image = strings.ReplaceAll(image, plugin.authRegistriesAsString, "")
-		// Cleanup the resulting string
-		image = strings.TrimPrefix(image, "/")
-
-		registry = "docker.io"
-		idx := strings.Index(image, "/")
-		if idx != -1 {
-			registry = image[0:idx]
-		}
-		return registry, true
 	}
 
 	return image, registry, false
