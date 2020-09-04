@@ -47,7 +47,7 @@ func main() {
 
 	if len(authorizedNotary) == 0 {
 		authorizedNotary = defaultNotary
-		log.Println("Notary Server was not set. Defaulting to:", defaultNotary)
+		log.Println("NOTARY Server was not set. Defaulting to:", defaultNotary)
 	}
 
 	if !strings.HasPrefix(authorizedNotary, "https://") {
@@ -60,7 +60,7 @@ func main() {
 	if len(notaryRootCA) == 0 {
 		notaryRootCAFile = ""
 
-		log.Println("Notary Server Root CA was not passed. Assuming the Notary server has been signed by a recognized public CA!")
+		log.Println("NOTARY_ROOT_CA was not passed. Assuming the Notary server has been signed by a recognized public CA!")
 	} else{
 		notaryURL, _ := url.ParseRequestURI(authorizedNotary)
 

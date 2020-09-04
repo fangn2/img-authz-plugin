@@ -5,6 +5,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/url"
 	"os/exec"
@@ -212,14 +213,20 @@ func (plugin *ImgAuthZPlugin) AuthZReq(req authorization.Request) authorization.
 
 	var cmd *exec.Cmd
 	if len(plugin.authorizedNotaryRootCAFile) > 0 {
-		cmd = exec.Command("/go/bin/notary",
-			"-s", plugin.authorizedNotary, "-d", "/root/.docker/trust", "--tlscacert", plugin.authorizedNotaryRootCAFile,
-			"lookup", image, tag)
+		executeThis = fmt.Sprintf("/go/bin/notary -s %s -d /root/.docker/trust --tlscacert %s lookup %s %s",
+			plugin.authorizedNotary,
+			plugin.authorizedNotaryRootCAFile,
+			image,
+			tag)
 	} else {
-		cmd = exec.Command("/go/bin/notary",
-			"-s", plugin.authorizedNotary, "-d", "/root/.docker/trust",
-			"lookup", image, tag)
+		executeThis = fmt.Sprintf("/go/bin/notary -s %s -d /root/.docker/trust lookup %s %s",
+			plugin.authorizedNotary,
+			image,
+			tag)
 	}
+
+	log.Println("Notary command: ", executeThis)
+	cmd = exec.Command("sh", "-c", executeThis)
 
 	out, err := cmd.CombinedOutput()
 	if err != nil {
