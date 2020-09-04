@@ -212,6 +212,7 @@ func (plugin *ImgAuthZPlugin) AuthZReq(req authorization.Request) authorization.
 		"for trust on image:", image, tag)
 
 	var cmd *exec.Cmd
+	var executeThis string
 	if len(plugin.authorizedNotaryRootCAFile) > 0 {
 		executeThis = fmt.Sprintf("/go/bin/notary -s %s -d /root/.docker/trust --tlscacert %s lookup %s %s",
 			plugin.authorizedNotary,
