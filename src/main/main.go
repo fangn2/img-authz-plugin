@@ -65,7 +65,7 @@ func main() {
 		notaryURL, _ := url.ParseRequestURI(authorizedNotary)
 
 		var notaryRootCAFolder = fmt.Sprintf("/root/.docker/tls/%s", notaryURL.Host)
-		var notaryRootCAFile = fmt.Sprintf("%s/root-ca.crt", notaryRootCAFolder)
+		notaryRootCAFile = fmt.Sprintf("%s/root-ca.crt", notaryRootCAFolder)
 		os.MkdirAll(notaryRootCAFolder, os.ModePerm)
 
 		f, err := os.Create(notaryRootCAFile)
