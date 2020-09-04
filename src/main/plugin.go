@@ -85,7 +85,7 @@ func (plugin *ImgAuthZPlugin) getRequestedRegistry(req authorization.Request, re
 	// docker pull
 	if strings.HasSuffix(reqURL.Path, "/images/create") {
 		image = reqURL.Query().Get("fromImage")
-		tag = reqURL.Query().Get("tag")
+		tag := reqURL.Query().Get("tag")
 		if len(tag) > 0 {
 			image = image + ":" + tag
 		}
