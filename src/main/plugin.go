@@ -58,32 +58,6 @@ func newPlugin(dockerHost string, registries map[string]bool, notary string, not
 		authRegistriesAsString:  authRegistries(registries)}, nil
 }
 
-// Parses the docker client command to determine the requested registry used in the command.
-// If a registry is used in the command (i.e. docker pull or docker run commands), then the registry url and true is returned.
-// Otherwise, returns empty string and false.
-func (plugin *ImgAuthZPlugin) isImageCommand(req authorization.Request, reqURL *url.URL) (string, bool) {
-
-	image := ""
-
-	// docker run
-	if strings.HasSuffix(reqURL.Path, "/containers/create") {
-		var config dockercontainer.Config
-		json.Unmarshal(req.RequestBody, &config)
-		image = config.Image
-	}
-
-	// docker pull
-	if strings.HasSuffix(reqURL.Path, "/images/create") {
-		image = reqURL.Query().Get("fromImage")
-	}
-
-	if len(image) > 0 {
-		return image, true
-	}
-
-	return "", false
-}
-
 // Returns true if there are any authorized registries configured.
 // Otherwise, returns false
 func (plugin *ImgAuthZPlugin) hasAuthorizedRegistries() bool {
@@ -97,6 +71,8 @@ func (plugin *ImgAuthZPlugin) getRequestedRegistry(req authorization.Request, re
 
 	image := ""
 	registry := ""
+	cleanSetRegistry := strings.TrimRight(plugin.authRegistriesAsString, "/")
+	defaultEmptyRegistry := "docker.io"
 
 	// docker run
 	if strings.HasSuffix(reqURL.Path, "/containers/create") {
@@ -112,6 +88,52 @@ func (plugin *ImgAuthZPlugin) getRequestedRegistry(req authorization.Request, re
 
 	if len(image) > 0 {
 		// If no registry is specfied, assume it is the dockerhub!
+
+		// because Docker removes docker.io form the fromImage query,
+		// we cannot know whether the user has passed the registry in the
+		// image name or not.
+		//
+		// Examples:
+		//  - docker.io/library/ubuntu is valid (fromImage = "library/ubuntu")
+		//  - docker.io/ubuntu is valid (fromImage = "ubuntu")
+		//  - myregistry:5000/img is valid (fromImage = myregistry:5000/img)
+		//  - name1/name2/name3/name4 is also valid...and we have no idea whether name is a registry, repo name, sub-repo name, etc.
+
+		// So let's instead check of the existence of the registry in fromImage
+		if strings.HasPrefix(image, cleanSetRegistry + "/") {
+			// then we are good to go
+			return image, plugin.authRegistriesAsString, true
+		} else{
+			// in this case, we might be dealing with docker.io,
+			// but Docker has removed the registry from fromImage
+			if cleanSetRegistry == defaultEmptyRegistry {
+				// there's no way to know if the prefix is a registry hostname
+				// or an image name
+
+				// So, let's prepend the image with docker.io, and if fromImage
+				// does indeed container a private registry, the Notary check
+				// will then fail
+				return cleanSetRegistry + "/" + image,
+						plugin.authRegistriesAsString, true
+			} else {
+				// then we assume the requested registry is the prefix
+				// even if it isn't, we are not using docker.io so we're good
+				idx := strings.Index(image, "/")
+				if idx != -1 {
+					return image, image[0:idx], true
+				} else {
+					// fromImage is a single string with no "/"
+					// just assume it is docker.io
+					return image, defaultEmptyRegistry, true
+				}
+			}
+		}
+
+		// So let's remove the set REGISTRY by default to normalize fromImage
+		image = strings.ReplaceAll(image, plugin.authRegistriesAsString, "")
+		// Cleanup the resulting string
+		image = strings.TrimPrefix(image, "/")
+
 		registry = "docker.io"
 		idx := strings.Index(image, "/")
 		if idx != -1 {
@@ -120,7 +142,7 @@ func (plugin *ImgAuthZPlugin) getRequestedRegistry(req authorization.Request, re
 		return registry, true
 	}
 
-	return registry, false
+	return image, registry, false
 }
 
 // AuthZReq Authorizes the docker client command.
@@ -133,17 +155,7 @@ func (plugin *ImgAuthZPlugin) AuthZReq(req authorization.Request) authorization.
 	reqURL, _ := url.ParseRequestURI(reqURI)
 
 	// Find out the requested registry and whether or not a registry is present in the client command
-	requestedImage, isImageCommand := plugin.isImageCommand(req, reqURL)
-
-	// Docker command do not involve registries
-	if isImageCommand == false {
-		// Allowed by default!
-		log.Println("[ALLOWED] Not image or container creation command:", req.RequestMethod, reqURL.String())
-		return authorization.Response{Allow: true}
-	}
-
-	// Find out the requested registry and whether or not a registry is present in the client command
-	requestedRegistry, isRegistryCommand := plugin.getRequestedRegistry(req, reqURL)
+	requestedImage, requestedRegistry, isRegistryCommand := plugin.getRequestedRegistry(req, reqURL)
 
 	// Docker command do not involve registries
 	if isRegistryCommand == false {
@@ -189,7 +201,7 @@ func (plugin *ImgAuthZPlugin) AuthZReq(req authorization.Request) authorization.
 	// after trimming the registry, we need to consider two types of image references:
 	//    - repo/image:tag, such as nuvla/api:latest, or
 	//	  - image:tag, used for official images, who omit the "library" repo, like alpine:latest
-	if len(strings.Split(trimmedImage, "/")) == 1 {
+	if (len(strings.Split(trimmedImage, "/")) == 1 && plugin.authRegistriesAsString == "docker.io") {
 		// then the format is missing the repo "library"
 		trimmedImage = "library/" + trimmedImage
 	}
