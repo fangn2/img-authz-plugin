@@ -121,6 +121,26 @@ make --makefile=Makefile.test
 
 Please **note** that this process, due to its broad coverage, can take around 10 minutes to complete.
 
+At the end of a successful test run, you should get an output like the following:
+
+```
+
+test_docker_pull_is_allowed
+test_docker_run_is_allowed
+test_pull_is_not_allowed_when_registry_is_not_authorized
+test_run_is_not_allowed_when_registry_is_not_authorized
+test_pull_is_allowed_when_registry_is_authorized
+test_run_is_allowed_when_registry_is_authorized
+test_pull_is_allowed_when_tag_not_specified
+test_run_is_allowed_when_tag_not_specified
+
+Ran 8 tests.
+
+OK
+```
+
+---
+
 **If** you already have the plugin installed and you only want to test the REGISTRY/NOTARY workflows, then you can just quickly run the unit test by doing:
 
 ```bash

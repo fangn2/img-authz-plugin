@@ -38,7 +38,7 @@ echo '''
 cd ${PLUGIN_DIR}/test
 
 export SHUNIT_COLOR="always"
-timeout 10s shunit2 tests.sh
+shunit2 tests.sh
 
 out=$?
 
