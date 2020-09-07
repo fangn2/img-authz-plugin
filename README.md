@@ -2,13 +2,14 @@
 
 This image authorization plugin is a fork and adaptation from the original upstream project [crosslibs/img-authz-plugin](https://github.com/crosslibs/img-authz-plugin). 
 
-The plugin makes sure that all Docker Registry-related requests are limited to a user-specified Docker Registry endpoint and, and trusted Docker images only. 
+The plugin makes sure that all Docker Registry-related requests are limited to a user-specified Docker Registry endpoint and for trusted Docker images only. 
 
 Docker and Notary tools are used to enforce and verify the Docker Registry and Image verification workflows.
 
 For additional information, please refer to [docker
 documentation](https://docs.docker.com/engine/extend/) on plugins, or the original plugin at [https://github.com/crosslibs/img-authz-plugin](https://github.com/crosslibs/img-authz-plugin).
 
+![arch.png](./docs/arch.png)
 
 ## Build and package the plugin
 
@@ -26,9 +27,9 @@ documentation](https://docs.docker.com/engine/extend/) on plugins, or the origin
     make create
     ```
     
-    This will **cleanup any previous installation of the plugin**, if the names match. So please **make sure** your Docker Daemon is not running with this plugin's name enabled.
+    This will **cleanup any previous installation of the plugin**, if the names match. So please **make sure** your Docker Daemon is not running with this plugin's name enabled (meaning that `--authorization-plugin` is not set).
     
-    At the end of this step, you'll have a new Docker plugin, disabled.
+    At the end of this step, you'll have a new Docker plugin, but disabled.
 
  3. Publish the plugin to the registry:
 
@@ -45,15 +46,20 @@ documentation](https://docs.docker.com/engine/extend/) on plugins, or the origin
 
 ## Install the plugin
 
+The plugin needs the configuration variables: `REGISTRY`, `NOTARY` and `NOTARY_ROOT_CA`. If you leave those empty, the plugin defaults to `docker.io` and `notary.docker.io`.
+
+ - `REGISTRY`: is the _host:port_ of the registry to be authorized
+ - `NOTARY`: is the _https://fqdn:port_ of the Notary server used for signing the images
+ - `NOTARY_ROOT_CA`: is the raw public Certificate Authority certificate used for the Notary server TLS certificates 
 
 ### From source
 
 To install the plugin from this repo:
 
-`make local_install REGISTRY=<registry>`
+`make local_install REGISTRY=<registry> NOTARY=<notary-server> NOTARY_ROOT_CA='''<raw-ca-cert>'''`
 
 (if you've already run `make build` and `make create`, then you can simply run
-`make enable REGISTRY=<registry>`).
+`make enable REGISTRY=<registry> ...`).
 
 Add the following JSON key value to `/etc/docker/daemon.json`:
 
@@ -65,11 +71,11 @@ and run `kill -SIGHUP $(pidof dockerd)`
 
 ### From a Docker registry
 
-**(recommended)**
+**(RECOMMENDED)**
 
 To get and install the plugin, simply run:
 
-`docker plugin install sixsq/img-authz-plugin:latest REGISTRY=<registry>`
+`docker plugin install sixsq/img-authz-plugin:latest REGISTRY=<registry> NOTARY=<notary-server> NOTARY_ROOT_CA='''<raw-ca-cert>'''`
 
 Where `REGISTRY` is host[:port] of the registry to be authorized.
 
@@ -90,56 +96,50 @@ First disable the plugin:
 
 Then set the new registries value:
 
-`docker plugin set sixsq/img-authz-plugin:latest REGISTRY=<registry>`
+`docker plugin set sixsq/img-authz-plugin:latest REGISTRY=<registry> NOTARY=<notary-server> NOTARY_ROOT_CA='''<raw-ca-cert>'''`
 
 Re-enable the plugin, and reload the Docker daemon:
 
 `docker plugin enable sixsq/img-authz-plugin:latest && kill -SIGHUP $(pidof dockerd)`
 
+## Using a self-signed private registry
+
+If you're using a private Docker registry with self-signed TLS certificates, **please remember** to add the client certificates to your Docker trust directory. 
+
+To do this, please follow the steps at: https://docs.docker.com/registry/insecure/#use-self-signed-certificates
+
+**NOTE:** using insecure Docker registries (without TLS) is not recommended and thus not covered by this plugin. Use it at your own risk.
+
 
 ## Test the plugin
 
-To test the plugin locally before publishing:
+You can test the full plugin build, creation and execution workflow by running:
 
-
-```
-# Create the plugin tests base image
-docker build -t plugin-tests -f Dockerfile.test --build-arg DOCKER_VERSION=1.12.6 --rm .
-
-# Start the plugin tests container
-docker run --privileged -d --name plugin-tests-1.12.6 plugin-tests-1.12.6
-
-# Run the plugin tests
-docker exec plugin-tests-1.12.6 python tests.py
-
-# Remove the plugin tests container
-docker rm -f plugin-tests-1.12.6
-
-# Remove the plugin tests image
-docker rmi -f plugin-tests-1.12.6
+```bash
+make --makefile=Makefile.test 
 ```
 
+Please **note** that this process, due to its broad coverage, can take around 10 minutes to complete.
 
-#### Stop and uninstall the plugin
-NOTE: Before doing below, remove the authorization-plugin configuration created above and restart the docker daemon.
-```
-# Stop the plugin service
-systemctl stop img-authz-plugin
-systemctl disable img-authz-plugin
+**If** you already have the plugin installed and you only want to test the REGISTRY/NOTARY workflows, then you can just quickly run the unit test by doing:
 
-# Uninstall the plugin service units
-docker run --rm -v `pwd`:`pwd` -w `pwd` -e GOPATH=`pwd` -v /usr/libexec:/usr/libexec \
-  -v /usr/lib/systemd/system:/usr/lib/systemd/system plugin-build-tools:latest \
-  make uninstall
-
+```bash
+ docker run --rm -v $(pwd)/test:/tmp -v /var/run/docker.sock:/var/run/docker.sock docker:dind sh -c 'apk update && apk add shunit2 && SHUNIT_COLOR="always" shunit2 /tmp/tests.sh && docker ps'
 ```
 
-#### To remove the generated artifacts
-```
-docker run --rm -v `pwd`:`pwd` -w `pwd` -e GOPATH=`pwd` plugin-build-tools:latest make clean
-```
+## Plugin logs
 
-#### Access plugin logs
-```
-journalctl -xe -u img-authz-plugin -f
-```
+The plugin logs are appended to the Docker daemon logs, and thus you can find them in your respective Docker logs' directory (for example, for Ubuntu you can do `journal -u docker`)
+
+
+## Stop and uninstall the plugin
+
+_(assuming the plugin name is sixsq/img-authz-plugin:latest)_
+
+Stop the plugin:
+ 1. `docker plugin disable sixsq/img-authz-plugin:latest`
+ 2. Remove the `authorization-plugins` attribute from /etc/docker/daemon.json
+ 3. `kill -SIGHUP $(pidof dockerd)`
+ 
+Uninstall the plugin:
+ 1. `docker plugin rm -f sixsq/img-authz-plugin:latest`

@@ -1,4 +1,4 @@
-PLUGIN_NAME = sixsq/img-authz-plugin
+PLUGIN_NAME ?= sixsq/img-authz-plugin
 PLUGIN_TAG ?= latest
 BUILD_DIR = PLUGIN
 REGISTRIES :=
@@ -35,7 +35,7 @@ create:
 
 enable:
 	@echo " - Setting authz registries if any. Current value: ${REGISTRIES}"
-	@if [ ! -z ${REGISTRIES} ]; then docker plugin set ${PLUGIN_NAME}:${PLUGIN_TAG} REGISTRIES=${REGISTRIES}; fi
+	@if [ ! -z ${REGISTRIES} ] && [ ! -z ${NOTARY} ]; then docker plugin set ${PLUGIN_NAME}:${PLUGIN_TAG} REGISTRIES=${REGISTRIES} NOTARY=${NOTARY} NOTARY_ROOT_CA=${NOTARY_ROOT_CA}; fi
 	@echo " - Enabling the plugin ${PLUGIN_NAME}:${PLUGIN_TAG} locally"
 	@docker plugin enable ${PLUGIN_NAME}:${PLUGIN_TAG}
 
