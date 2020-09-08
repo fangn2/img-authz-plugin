@@ -124,7 +124,7 @@ You can test the full plugin build, creation and execution workflow by running:
 make --makefile=Makefile.test 
 ```
 
-Please **note** that this process, due to its broad coverage, can take around 10 minutes to complete.
+Please **note** that this process, due to its broad coverage, can take around 10 minutes to complete (depending on your network and compute resources).
 
 At the end of a successful test run, you should get an output like the following:
 
