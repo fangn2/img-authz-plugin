@@ -80,6 +80,10 @@ To get and install the plugin, simply run:
 
 Where `REGISTRY` is host[:port] of the registry to be authorized.
 
+NOTE: you'll be prompted with some special access requests for the plugin (like access to the host network). Please reply `y` otherwise the plugin will not function correctly.
+
+
+
 Add the following JSON key value to `/etc/docker/daemon.json`:
 
 ```json
