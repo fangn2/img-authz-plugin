@@ -1,10 +1,9 @@
 PLUGIN_NAME ?= sixsq/img-authz-plugin
-PLUGIN_TAG ?= latest
+PLUGIN_ARCH ?= latest
 BUILD_DIR = PLUGIN
 REGISTRIES :=
 NOTARY :=
 NOTARY_ROOT_CA :=
-ARCH := amd64
 
 all: clean rootfs create push
 
@@ -18,7 +17,7 @@ clean:
 
 rootfs:
 	@echo " - Building the rootfs Docker image"
-	@docker build -t ${PLUGIN_NAME}:rootfs --build-arg ARCH=${ARCH} .
+	@docker build -t ${PLUGIN_NAME}:rootfs --build-arg ARCH=${PLUGIN_ARCH} .
 	@echo " - Create rootfs folder at ./${BUILD_DIR}/rootfs"
 	@mkdir -p ./${BUILD_DIR}/rootfs
 	@echo " - Initialize container from ${PLUGIN_NAME}:rootfs"
@@ -31,17 +30,17 @@ rootfs:
 	@docker rm -vf rootfs
 
 create:
-	@echo " - Removing existing plugin ${PLUGIN_NAME}:${PLUGIN_TAG} if exists"
-	@docker plugin rm -f ${PLUGIN_NAME}:${PLUGIN_TAG} || true
-	@echo " - Creating new plugin ${PLUGIN_NAME}:${PLUGIN_TAG} from ./${BUILD_DIR}"
-	@docker plugin create ${PLUGIN_NAME}:${PLUGIN_TAG} ./${BUILD_DIR}
+	@echo " - Removing existing plugin ${PLUGIN_NAME}:${PLUGIN_ARCH} if exists"
+	@docker plugin rm -f ${PLUGIN_NAME}:${PLUGIN_ARCH} || true
+	@echo " - Creating new plugin ${PLUGIN_NAME}:${PLUGIN_ARCH} from ./${BUILD_DIR}"
+	@docker plugin create ${PLUGIN_NAME}:${PLUGIN_ARCH} ./${BUILD_DIR}
 
 enable:
 	@echo " - Setting authz registries if any. Current value: ${REGISTRIES}"
-	@if [ ! -z ${REGISTRIES} ] && [ ! -z ${NOTARY} ]; then docker plugin set ${PLUGIN_NAME}:${PLUGIN_TAG} REGISTRIES=${REGISTRIES} NOTARY=${NOTARY} NOTARY_ROOT_CA=${NOTARY_ROOT_CA}; fi
-	@echo " - Enabling the plugin ${PLUGIN_NAME}:${PLUGIN_TAG} locally"
-	@docker plugin enable ${PLUGIN_NAME}:${PLUGIN_TAG}
+	@if [ ! -z ${REGISTRIES} ] && [ ! -z ${NOTARY} ]; then docker plugin set ${PLUGIN_NAME}:${PLUGIN_ARCH} REGISTRIES=${REGISTRIES} NOTARY=${NOTARY} NOTARY_ROOT_CA=${NOTARY_ROOT_CA}; fi
+	@echo " - Enabling the plugin ${PLUGIN_NAME}:${PLUGIN_ARCH} locally"
+	@docker plugin enable ${PLUGIN_NAME}:${PLUGIN_ARCH}
 
 push:
-	@echo " - Publishing plugin ${PLUGIN_NAME}:${PLUGIN_TAG} (make sure access to chosen registry is provided)"
-	@docker plugin push ${PLUGIN_NAME}:${PLUGIN_TAG}
+	@echo " - Publishing plugin ${PLUGIN_NAME}:${PLUGIN_ARCH} (make sure access to chosen registry is provided)"
+	@docker plugin push ${PLUGIN_NAME}:${PLUGIN_ARCH}
