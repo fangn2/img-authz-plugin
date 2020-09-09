@@ -1,5 +1,5 @@
 PLUGIN_NAME ?= sixsq/img-authz-plugin
-PLUGIN_ARCH ?= latest
+PLUGIN_ARCH ?= amd64
 BUILD_DIR = PLUGIN
 REGISTRIES :=
 NOTARY :=
@@ -17,7 +17,16 @@ clean:
 
 rootfs:
 	@echo " - Building the rootfs Docker image"
-	@docker build -t ${PLUGIN_NAME}:rootfs --build-arg ARCH=${PLUGIN_ARCH} .
+	@docker run --rm --privileged -v ${PWD}:/tmp/work --entrypoint buildctl-daemonless.sh moby/buildkit:master \
+					build \
+                   	--frontend dockerfile.v0 \
+                   	--opt platform=linux/${PLUGIN_ARCH} \
+                   	--opt filename=./Dockerfile \
+                   	--opt build-arg:ARCH=${PLUGIN_ARCH} \
+				   	--output type=image,name=${PLUGIN_NAME}:rootfs,push=false \
+				   	--local context=/tmp/work \
+				   	--local dockerfile=/tmp/work \
+				   	--progress plain
 	@echo " - Create rootfs folder at ./${BUILD_DIR}/rootfs"
 	@mkdir -p ./${BUILD_DIR}/rootfs
 	@echo " - Initialize container from ${PLUGIN_NAME}:rootfs"
