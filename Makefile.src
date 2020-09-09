@@ -1,6 +1,7 @@
 # Docker Image Authorization Plugin
 # Builds, Installs and Uninstalls the image authorization plugin service
 # Author: Chaitanya Prakash N <cpdevws@gmail.com>
+
 DESCRIPTION="Docker Image Authorization Plugin"
 SERVICE=img-authz-plugin
 SERVICEINSTALLDIR=/usr/libexec
