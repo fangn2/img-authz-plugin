@@ -2,6 +2,9 @@ PLUGIN_NAME ?= sixsq/img-authz-plugin
 PLUGIN_TAG ?= latest
 BUILD_DIR = PLUGIN
 REGISTRIES :=
+NOTARY :=
+NOTARY_ROOT_CA :=
+ARCH := amd64
 
 all: clean rootfs create push
 
@@ -15,7 +18,7 @@ clean:
 
 rootfs:
 	@echo " - Building the rootfs Docker image"
-	@docker build -t ${PLUGIN_NAME}:rootfs .
+	@docker build -t ${PLUGIN_NAME}:rootfs --build-arg ARCH=${ARCH} .
 	@echo " - Create rootfs folder at ./${BUILD_DIR}/rootfs"
 	@mkdir -p ./${BUILD_DIR}/rootfs
 	@echo " - Initialize container from ${PLUGIN_NAME}:rootfs"
