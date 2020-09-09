@@ -1,0 +1,44 @@
+# This is a basic workflow to help you get started with Actions
+
+name: 'Img Authz Plugin CI'
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Run steps on a matrix of 3 arch/distro combinations
+    strategy:
+      matrix:
+        include:
+          - arch: armv7
+            distro: buster            
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Run on architecture
+        # You may pin to the exact commit or the version.
+        # uses: uraimo/run-on-arch-action@8ba35c58b811bc0d772e45c56c38b09fbd1a0c44
+        uses: uraimo/run-on-arch-action@v2.0.4
+        with:
+          # CPU architecture: armv6, armv7, aarch64, s390x, ppc64le.
+          arch: ${{ matrix.arch }}
+          # Linux distribution name: ubuntu16.04, ubuntu18.04, ubuntu20.04, buster, stretch, jessie, fedora_latest, alpine_latest.
+          distro: ${{ matrix.distro }}
+          # Your GitHub token, used for caching Docker images in your project's public package registry. Usually this would just be $\{{ github.token }}. This speeds up builds and is highly recommended.
+          githubToken: ${{ github.token }}
+
+
+          # Shell commands to execute in the container.
+          run: make build
