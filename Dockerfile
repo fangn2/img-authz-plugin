@@ -1,4 +1,4 @@
-FROM golang
+FROM golang:alpine as plugin-builder
 
 WORKDIR /opt
 
@@ -16,8 +16,13 @@ RUN git clone https://github.com/theupdateframework/notary.git && \
     go get github.com/theupdateframework/notary && \
     go install -tags pkcs11 github.com/theupdateframework/notary/cmd/notary
 
-# empty unless the image is specifically built with it
-# the docker plugin install command will set this later if needed
+#---#
+
+FROM alpine
+
+COPY --from=plugin-builder /usr/libexec/img-authz-plugin /usr/libexec/img-authz-plugin
+COPY --from=plugin-builder /go/bin/notary /go/bin/notary
+
 ENV PATH=${PATH}:/go/bin
 
 ENTRYPOINT /usr/libexec/img-authz-plugin
