@@ -1,4 +1,4 @@
-FROM golang:alpine as plugin-builder
+FROM golang as plugin-builder
 
 WORKDIR /opt
 
