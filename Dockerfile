@@ -1,12 +1,8 @@
 FROM golang as plugin-builder
 
-ARG ARCH=amd64
-
 WORKDIR /opt
 
 COPY . .
-
-ENV GOOS=linux GOARCH=$ARCH
 
 RUN make --makefile=Makefile.src && \
     make --makefile=Makefile.src install
