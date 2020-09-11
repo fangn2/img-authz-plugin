@@ -20,7 +20,7 @@ jobs:
       matrix:
         include:
           - arch: armv7
-            distro: buster            
+            distro: buster
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -39,6 +39,21 @@ jobs:
           # Your GitHub token, used for caching Docker images in your project's public package registry. Usually this would just be $\{{ github.token }}. This speeds up builds and is highly recommended.
           githubToken: ${{ github.token }}
 
+          # Mount the docker socket
+          dockerRunArgs: |
+            --volume "/var/run/docker.sock:/var/run/docker.sock"
+
+          install: |
+                apt-get update -q -y
+                apt-get install -q -y make  \
+                                               apt-transport-https \
+                                               ca-certificates \
+                                               curl \
+                                               gnupg-agent \
+                                               software-properties-common \
+                                               wget
+                wget -O docker.tgz "https://download.docker.com/linux/static/stable/armhf/docker-19.03.12.tgz"
+                tar --extract --file docker.tgz --strip-components 1 --directory /usr/local/bin/
 
           # Shell commands to execute in the container.
-          run: ls
+          run: docker ps
