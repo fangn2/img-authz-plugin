@@ -56,4 +56,4 @@ jobs:
                 tar --extract --file docker.tgz --strip-components 1 --directory /usr/local/bin/
 
           # Shell commands to execute in the container.
-          run: docker ps
+          run: arch && make build
