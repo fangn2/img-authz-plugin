@@ -56,7 +56,7 @@ jobs:
                 tar --extract --file docker.tgz --strip-components 1 --directory /usr/local/bin/
 
           # Shell commands to execute in the container.
-          run: docker login -u ${{ github.SIXSQ_DOCKER_USERNAME }} -p ${{ github.SIXSQ_DOCKER_PASSWORD }} && make all
+          run: echo ${{ github.SIXSQ_DOCKER_USERNAME }} && docker login -u ${{ github.SIXSQ_DOCKER_USERNAME }} -p ${{ github.SIXSQ_DOCKER_PASSWORD }} && make all
 
   notify:
     if: always()
