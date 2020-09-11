@@ -56,7 +56,7 @@ jobs:
                 tar --extract --file docker.tgz --strip-components 1 --directory /usr/local/bin/
 
           # Shell commands to execute in the container.
-          run: arch && make build
+          run: arch && make build &&
 
       - uses: 8398a7/action-slack@v3
         name: Slack notification

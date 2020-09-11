@@ -1,5 +1,5 @@
 PLUGIN_NAME ?= sixsq/img-authz-plugin
-PLUGIN_TAG ?= latest
+PLUGIN_TAG ?= $(arch)
 BUILD_DIR = PLUGIN
 REGISTRIES :=
 
