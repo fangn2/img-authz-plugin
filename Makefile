@@ -1,7 +1,10 @@
 PLUGIN_NAME ?= sixsq/img-authz-plugin
 PLUGIN_TAG ?= $(arch)
-BUILD_DIR = PLUGIN
+BUILD_DIR = PLUGIN_${PLUGIN_TAG}
 REGISTRIES :=
+NOTARY :=
+NOTARY_ROOT_CA :=
+
 
 all: clean rootfs create push
 

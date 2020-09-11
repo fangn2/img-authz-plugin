@@ -1,12 +1,11 @@
-FROM golang
+FROM golang as plugin-builder
 
 WORKDIR /opt
 
 COPY . .
 
 RUN make --makefile=Makefile.src && \
-    make --makefile=Makefile.src install && \
-    make --makefile=Makefile.src clean
+    make --makefile=Makefile.src install
 
 # install Notary and a pre-requisite
 ENV GO111MODULE=on
@@ -16,8 +15,16 @@ RUN git clone https://github.com/theupdateframework/notary.git && \
     go get github.com/theupdateframework/notary && \
     go install -tags pkcs11 github.com/theupdateframework/notary/cmd/notary
 
-# empty unless the image is specifically built with it
-# the docker plugin install command will set this later if needed
-ENV PATH=${PATH}:/go/bin
+#---#
+
+FROM alpine
+
+RUN apk update && apk add --no-cache libc6-compat
+
+COPY --from=plugin-builder /usr/libexec/img-authz-plugin /usr/libexec/img-authz-plugin
+COPY --from=plugin-builder /go/bin/notary /go/bin/notary
+
+ENV PATH=${PATH}:/go/bin \
+    CGO_ENABLED=0
 
 ENTRYPOINT /usr/libexec/img-authz-plugin
