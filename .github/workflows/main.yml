@@ -56,28 +56,20 @@ jobs:
                 tar --extract --file docker.tgz --strip-components 1 --directory /usr/local/bin/
 
           # Shell commands to execute in the container.
-          run: arch && make build && make create && docker images
+          run: docker login -u ${{ github.SIXSQ_DOCKER_USERNAME }} -p ${{ github.SIXSQ_DOCKER_PASSWORD }} && make all
 
   notify:
-    # The type of runner that the job will run on
+    if: always()
+    name: Post Workflow Status To Slack
+    needs:
+      - build
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: 8398a7/action-slack@v3
-        name: Slack notification
+      - name: Slack Workflow Notification
+        uses: Gamesight/slack-workflow-status@master
         with:
-          status: custom
-          fields: workflow,job,commit,repo,ref,author,took
-          custom_payload: |
-            {
-              username: 'action-slack',
-              icon_emoji: ':octocat:',
-              attachments: [{
-                color: '${{ job.status }}' === 'success' ? 'good' : '${{ job.status }}' === 'failure' ? 'danger' : 'warning',
-                text: `${process.env.AS_WORKFLOW}\n${process.env.AS_JOB} (${process.env.AS_COMMIT}) of ${process.env.AS_REPO}@${process.env.AS_REF} by ${process.env.AS_AUTHOR} succeeded in ${process.env.AS_TOOK}`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          # Required Input
+          repo_token: ${{secrets.GITHUB_TOKEN}}
+          slack_webhook_url: ${{secrets.SLACK_WEBHOOK_URL}}
+          # Optional Input
+          icon_emoji: ':eve:'
