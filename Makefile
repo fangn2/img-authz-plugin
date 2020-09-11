@@ -1,5 +1,5 @@
 PLUGIN_NAME ?= sixsq/img-authz-plugin
-PLUGIN_TAG ?= $(arch)
+PLUGIN_TAG ?= $(shell arch)
 BUILD_DIR = PLUGIN_${PLUGIN_TAG}
 REGISTRIES :=
 NOTARY :=
