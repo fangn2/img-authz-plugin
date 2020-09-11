@@ -1,5 +1,7 @@
 # SixSq's Docker Image Authorization Plugin
 
+![Img Authz Plugin CI](https://github.com/SixSq/img-authz-plugin/workflows/Img%20Authz%20Plugin%20CI/badge.svg?branch=master)
+
 This image authorization plugin is a fork and adaptation from the original upstream project [crosslibs/img-authz-plugin](https://github.com/crosslibs/img-authz-plugin). 
 
 The plugin makes sure that all Docker Registry-related requests are limited to a user-specified Docker Registry endpoint and for trusted Docker images only. 
