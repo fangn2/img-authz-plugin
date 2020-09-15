@@ -63,6 +63,9 @@ jobs:
             done
 
             set -x
+            arch
+            uname -a
+
             docker login -u ${{ secrets.SIXSQ_DOCKER_USERNAME }} -p ${{ secrets.SIXSQ_DOCKER_PASSWORD }}
             make all
 
