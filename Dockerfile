@@ -1,11 +1,6 @@
-FROM golang as plugin-builder
+ARG PLATFORM=linux/amd64
 
-ARG TARGETPLATFORM
-ARG BUILDPLATFORM
-ARG BUILDOS
-ARG BUILDARCH
-
-RUN echo "I'm building for $TARGETPLATFORM $BUILDPLATFORM $BUILDARCH $BUILDOS"
+FROM --platform=$PLATFORM golang as plugin-builder
 
 WORKDIR /opt
 
@@ -24,7 +19,7 @@ RUN git clone https://github.com/theupdateframework/notary.git && \
 
 #---#
 
-FROM alpine
+FROM --platform=$PLATFORM alpine
 
 RUN apk update && apk add --no-cache libc6-compat
 

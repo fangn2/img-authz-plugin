@@ -18,7 +18,7 @@ clean:
 
 rootfs:
 	@echo " - Building the rootfs Docker image"
-	@docker build -t ${PLUGIN_NAME}:rootfs .
+	@docker build -t ${PLUGIN_NAME}:rootfs . --build-arg PLATFORM=linux/${PLUGIN_TAG}
 	@docker inspect ${PLUGIN_NAME}:rootfs
 	@echo " - Create rootfs folder at ./${BUILD_DIR}/rootfs"
 	@mkdir -p ./${BUILD_DIR}/rootfs
