@@ -58,7 +58,7 @@ jobs:
 #          # Shell commands to execute in the container.
 #          run: set -x && docker login -u ${{ secrets.SIXSQ_DOCKER_USERNAME }} -p ${{ secrets.SIXSQ_DOCKER_PASSWORD }} && make all
 
-  armv7_job:
+  build:
     runs-on: ubuntu-18.04
     name: Build on ARMv7
     steps:
@@ -96,4 +96,4 @@ jobs:
           repo_token: ${{secrets.GITHUB_TOKEN}}
           slack_webhook_url: ${{secrets.SLACK_WEBHOOK_URL}}
           # Optional Input
-          icon_emoji: ':eve:'
+          icon_emoji: ':ghost:'
