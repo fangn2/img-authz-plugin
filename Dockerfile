@@ -17,7 +17,7 @@ RUN git clone https://github.com/theupdateframework/notary.git && \
 
 #---#
 
-FROM alpine
+FROM alpine@sha256:c929c5ca1d3f793bfdd2c6d6d9210e2530f1184c0f488f514f1bb8080bb1e82b
 
 RUN apk update && apk add --no-cache libc6-compat
 
