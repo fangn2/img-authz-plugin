@@ -68,7 +68,7 @@ jobs:
         with:
           architecture: armv7
           distribution: ubuntu18.04
-          additionalArgs: --volume "/var/run/docker.sock:/var/run/docker.sock"
+          additionalArgs: -v /var/run/docker.sock:/var/run/docker.sock
           run: |
             apt-get update -q -y
             apt-get install -q -y make  \
