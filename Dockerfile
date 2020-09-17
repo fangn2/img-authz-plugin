@@ -1,4 +1,6 @@
-FROM --platform=linux/arm/v7 golang as plugin-builder
+FROM golang as plugin-builder
+
+RUN arch
 
 WORKDIR /opt
 
@@ -17,7 +19,7 @@ RUN git clone https://github.com/theupdateframework/notary.git && \
 
 #---#
 
-FROM --platform=linux/arm/v7 alpine
+FROM alpine
 
 RUN apk update && apk add --no-cache libc6-compat
 
