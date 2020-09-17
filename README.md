@@ -55,7 +55,7 @@ The plugin needs the configuration variables: `REGISTRY`, `NOTARY` and `NOTARY_R
  - `NOTARY`: is the _https://fqdn:port_ of the Notary server used for signing the images
  - `NOTARY_ROOT_CA`: is the raw public Certificate Authority certificate used for the Notary server TLS certificates 
  
-**NOTE:** please note that the plugin is **architecture specific**.
+**NOTE:** please note that the plugin is **architecture specific**. From hereon, <YOUR_CPU_ARCH> is the target device's CPU architecture.
 
 ### From source
 
@@ -69,7 +69,7 @@ To install the plugin from this repo:
 Add the following JSON key value to `/etc/docker/daemon.json`:
 
 ```json
-"authorization-plugins": ["sixsq/img-authz-plugin:latest"]
+"authorization-plugins": ["sixsq/img-authz-plugin:<YOUR_CPU_ARCH>"]
 ```
 
 and run `kill -SIGHUP $(pidof dockerd)`
@@ -84,8 +84,6 @@ To get and install the plugin, simply run:
 
 `docker plugin install sixsq/img-authz-plugin:<YOUR_CPU_ARCH> REGISTRY=<registry> NOTARY=<notary-server> NOTARY_ROOT_CA='''<raw-ca-cert>'''`
 
-Where <YOUR_CPU_ARCH> is the target device's CPU architecture (either x86_64 or aarch64 - for other architectures, please build the plugin from source, as explained above)
-
 NOTE: you'll be prompted with some special access requests for the plugin (like access to the host network). Please reply `y` otherwise the plugin will not function correctly. If you'd like to avoid being prompted, you can run the command from above with `--grant-all-permissions`.
 
 
@@ -93,7 +91,7 @@ NOTE: you'll be prompted with some special access requests for the plugin (like 
 Add the following JSON key value to `/etc/docker/daemon.json`:
 
 ```json
-"authorization-plugins": ["sixsq/img-authz-plugin:latest"]
+"authorization-plugins": ["sixsq/img-authz-plugin:<YOUR_CPU_ARCH>"]
 ```
 
 and run `kill -SIGHUP $(pidof dockerd)`
@@ -103,15 +101,15 @@ and run `kill -SIGHUP $(pidof dockerd)`
 
 First disable the plugin:
 
-`docker plugin disable sixsq/img-authz-plugin:latest`
+`docker plugin disable sixsq/img-authz-plugin:<YOUR_CPU_ARCH>`
 
 Then set the new registries value:
 
-`docker plugin set sixsq/img-authz-plugin:latest REGISTRY=<registry> NOTARY=<notary-server> NOTARY_ROOT_CA='''<raw-ca-cert>'''`
+`docker plugin set sixsq/img-authz-plugin:<YOUR_CPU_ARCH> REGISTRY=<registry> NOTARY=<notary-server> NOTARY_ROOT_CA='''<raw-ca-cert>'''`
 
 Re-enable the plugin, and reload the Docker daemon:
 
-`docker plugin enable sixsq/img-authz-plugin:latest && kill -SIGHUP $(pidof dockerd)`
+`docker plugin enable sixsq/img-authz-plugin:<YOUR_CPU_ARCH> && kill -SIGHUP $(pidof dockerd)`
 
 ## Using a self-signed private registry
 
@@ -173,12 +171,12 @@ The plugin logs are appended to the Docker daemon logs, and thus you can find th
 
 ## Stop and uninstall the plugin
 
-_(assuming the plugin name is sixsq/img-authz-plugin:latest)_
+_(assuming the plugin name is sixsq/img-authz-plugin:<YOUR_CPU_ARCH>)_
 
 Stop the plugin:
- 1. `docker plugin disable sixsq/img-authz-plugin:latest`
+ 1. `docker plugin disable sixsq/img-authz-plugin:<YOUR_CPU_ARCH>`
  2. Remove the `authorization-plugins` attribute from /etc/docker/daemon.json
  3. `kill -SIGHUP $(pidof dockerd)`
  
 Uninstall the plugin:
- 1. `docker plugin rm -f sixsq/img-authz-plugin:latest`
+ 1. `docker plugin rm -f sixsq/img-authz-plugin:<YOUR_CPU_ARCH>`
