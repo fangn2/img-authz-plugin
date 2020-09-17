@@ -54,6 +54,8 @@ The plugin needs the configuration variables: `REGISTRY`, `NOTARY` and `NOTARY_R
  - `REGISTRY`: is the _host:port_ of the registry to be authorized
  - `NOTARY`: is the _https://fqdn:port_ of the Notary server used for signing the images
  - `NOTARY_ROOT_CA`: is the raw public Certificate Authority certificate used for the Notary server TLS certificates 
+ 
+**NOTE:** please note that the plugin is **architecture specific**.
 
 ### From source
 
@@ -72,15 +74,17 @@ Add the following JSON key value to `/etc/docker/daemon.json`:
 
 and run `kill -SIGHUP $(pidof dockerd)`
 
-### From a Docker registry
+### From a Docker registry (only for amd64 and arm64)
 
 **(RECOMMENDED)**
 
+**Only available for amd64 and arm64 CPU architectures**!
+
 To get and install the plugin, simply run:
 
-`docker plugin install sixsq/img-authz-plugin:latest REGISTRY=<registry> NOTARY=<notary-server> NOTARY_ROOT_CA='''<raw-ca-cert>'''`
+`docker plugin install sixsq/img-authz-plugin:<YOUR_CPU_ARCH> REGISTRY=<registry> NOTARY=<notary-server> NOTARY_ROOT_CA='''<raw-ca-cert>'''`
 
-Where `REGISTRY` is host[:port] of the registry to be authorized.
+Where <YOUR_CPU_ARCH> is the target device's CPU architecture (either amd64 or arm64 - for other architectures, please build the plugin from source, as explained above)
 
 NOTE: you'll be prompted with some special access requests for the plugin (like access to the host network). Please reply `y` otherwise the plugin will not function correctly. If you'd like to avoid being prompted, you can run the command from above with `--grant-all-permissions`.
 
