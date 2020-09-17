@@ -74,17 +74,17 @@ Add the following JSON key value to `/etc/docker/daemon.json`:
 
 and run `kill -SIGHUP $(pidof dockerd)`
 
-### From a Docker registry (only for amd64 and arm64)
+### From a Docker registry (only for x86_64 and aarch64)
 
 **(RECOMMENDED)**
 
-**Only available for amd64 and arm64 CPU architectures**!
+**Only available for x86_64 and aarch64 CPU architectures**!
 
 To get and install the plugin, simply run:
 
 `docker plugin install sixsq/img-authz-plugin:<YOUR_CPU_ARCH> REGISTRY=<registry> NOTARY=<notary-server> NOTARY_ROOT_CA='''<raw-ca-cert>'''`
 
-Where <YOUR_CPU_ARCH> is the target device's CPU architecture (either amd64 or arm64 - for other architectures, please build the plugin from source, as explained above)
+Where <YOUR_CPU_ARCH> is the target device's CPU architecture (either x86_64 or aarch64 - for other architectures, please build the plugin from source, as explained above)
 
 NOTE: you'll be prompted with some special access requests for the plugin (like access to the host network). Please reply `y` otherwise the plugin will not function correctly. If you'd like to avoid being prompted, you can run the command from above with `--grant-all-permissions`.
 
