@@ -1,7 +1,5 @@
 FROM golang as plugin-builder
 
-RUN arch
-
 WORKDIR /opt
 
 COPY . .
