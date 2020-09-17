@@ -66,6 +66,7 @@ jobs:
             arch
             uname -a
             export DOCKER_BUILDKIT=1
+            docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
             docker login -u ${{ secrets.SIXSQ_DOCKER_USERNAME }} -p ${{ secrets.SIXSQ_DOCKER_PASSWORD }}
             make all
 
