@@ -13,6 +13,7 @@ import (
 
 	dockerapi "github.com/docker/docker/api"
 	dockercontainer "github.com/docker/docker/api/types/container"
+  dockerswarm "github.com/docker/docker/api/types/swarm"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/docker/go-plugins-helpers/authorization"
 )
@@ -80,6 +81,8 @@ func (plugin *ImgAuthZPlugin) getRequestedRegistry(req authorization.Request, re
 		var config dockercontainer.Config
 		json.Unmarshal(req.RequestBody, &config)
 		image = config.Image
+
+    log.Println("Analysing container creation request for image: ", image)
 	}
 
 	// docker pull
@@ -89,11 +92,17 @@ func (plugin *ImgAuthZPlugin) getRequestedRegistry(req authorization.Request, re
 		if len(tag) > 0 {
 			image = image + ":" + tag
 		}
+
+		log.Println("Analysing image pull for: ", image)
 	}
 
-	// docker service
-  if strings.HasSuffix(reqURL.Path, "/distribution") {
-    image = strings.TrimRight(strings.TrimPrefix(reqURL.Path, "/distribution/"), "/json")
+  // docker service
+	if strings.HasSuffix(reqURL.Path, "/services/create") {
+    var config dockerswarm.ServiceSpec
+    json.Unmarshal(req.RequestBody, &config)
+    image = strings.Split(config.TaskTemplate.ContainerSpec.Image, '@')[0]
+
+    log.Println("Analysing service creation with image: ", image)
   }
 
 	if len(image) > 0 {
