@@ -91,6 +91,11 @@ func (plugin *ImgAuthZPlugin) getRequestedRegistry(req authorization.Request, re
 		}
 	}
 
+	// docker service
+  if strings.HasSuffix(reqURL.Path, "/distribution") {
+    image = strings.TrimRight(strings.TrimPrefix(reqURL.Path, "/distribution/"), "/json")
+  }
+
 	if len(image) > 0 {
 		// If no registry is specfied, assume it is the dockerhub!
 
