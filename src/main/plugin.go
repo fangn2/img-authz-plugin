@@ -100,7 +100,7 @@ func (plugin *ImgAuthZPlugin) getRequestedRegistry(req authorization.Request, re
 	if strings.HasSuffix(reqURL.Path, "/services/create") {
     var config dockerswarm.ServiceSpec
     json.Unmarshal(req.RequestBody, &config)
-    image = strings.Split(config.TaskTemplate.ContainerSpec.Image, '@')[0]
+    image = strings.Split(config.TaskTemplate.ContainerSpec.Image, "@")[0]
 
     log.Println("Analysing service creation with image: ", image)
   }
