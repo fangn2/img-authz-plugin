@@ -180,3 +180,8 @@ Stop the plugin:
  
 Uninstall the plugin:
  1. `docker plugin rm -f sixsq/img-authz-plugin:<YOUR_CPU_ARCH>`
+
+
+## Copyright
+
+Copyright &copy; 2021, SixSq SA
